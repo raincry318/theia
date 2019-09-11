@@ -26,6 +26,7 @@ import { GitScmProvider } from './git-scm-provider';
 import { ScmService } from '@theia/scm/lib/browser/scm-service';
 import { ScmRepository } from '@theia/scm/lib/browser/scm-repository';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import { OS } from '@theia/core/lib/common';
 
 export interface GitRefreshOptions {
     readonly maxCount: number
@@ -163,11 +164,12 @@ export class GitRepositoryProvider {
         }
     }
 
-    protected registerScmProvider(repository: Repository): void {
+    protected async registerScmProvider(repository: Repository): Promise<void> {
         const provider = this.scmProviderFactory({ repository });
+        const branch = await this.git.branch(repository, { type: 'current' });
         this.scmService.registerScmProvider(provider, {
             input: {
-                placeholder: 'Message (press {0} to commit)',
+                placeholder: `Message (${OS.type() === OS.Type.OSX ? '⌘' : 'press '}{0} to commit ${branch ? 'on \'' + branch.name + '\'' : ''})`,
                 validator: async value => {
                     const issue = await this.commitMessageValidator.validate(value);
                     return issue && {
