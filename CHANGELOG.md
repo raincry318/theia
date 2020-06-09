@@ -11,6 +11,7 @@
   - This change triggers the context menu for a given shell tab-bar without the need to activate it
   - While registering a command, `Event` should be passed down, if not passed, then the commands will not work correctly as they no longer rely on the activation of tab-bar
 - [core] Moved `findTitle()` and `findTabBar()` from `common-frontend-contribution.ts` to `application-shell.ts`  [#6965](https://github.com/eclipse-theia/theia/pull/6965)
+- [git] the changes in the commit details (opened from the history view) and in the diff view (opened with 'Compare With...' on a folder's context menu) are now switchable between 'list' and 'tree' modes [#8084](https://github.com/eclipse-theia/theia/pull/8084)
 - [filesystem] show Linux users a warning when Inotify handles have been exhausted, with link to instructions on how to fix [#8458](https://github.com/eclipse-theia/theia/pull/8458)
 
 ## v1.5.0 - 27/08/2020
