@@ -19,6 +19,44 @@ import { JsonRpcServer, JsonRpcProxy } from '@theia/core';
 import { FileChangeType } from './files';
 export { FileChangeType };
 
+export const FileSystemWatcherServer2 = Symbol('FileSystemWatcherServer2');
+/**
+ * Singleton implementation of the watch server.
+ *
+ * Since multiple clients all make requests to this service, we need to track those individually via a `clientId`.
+ */
+export interface FileSystemWatcherServer2 extends JsonRpcServer<FileSystemWatcherClient2> {
+    /**
+     * @param clientId arbitrary id used to identify a client.
+     * @param uri the path to watch.
+     * @param options optional parameters.
+     * @returns promise to a unique `number` handle for this request.
+     */
+    watchFileChanges2(clientId: number, uri: string, options?: WatchOptions): Promise<number>;
+    /**
+     * @param watcherId handle mapping to a previous `watchFileChanges` request.
+     */
+    unwatchFileChanges2(watcherId: number): Promise<void>;
+}
+
+export interface FileSystemWatcherClient2 {
+    onDidFilesChanged2(event: DidFilesChangedParams2): void;
+    onError2(event: FileSystemWatcherErrorParams2): void;
+}
+
+export interface DidFilesChangedParams2 {
+    /** Client IDs to route the events to. */
+    clients: number[];
+    changes: FileChange[];
+}
+
+export interface FileSystemWatcherErrorParams2 {
+    /** Client IDs to route the events to. */
+    clients: number[];
+    /** The uri that originated the error. */
+    uri: string;
+}
+
 export const FileSystemWatcherServer = Symbol('FileSystemWatcherServer');
 export interface FileSystemWatcherServer extends JsonRpcServer<FileSystemWatcherClient> {
     /**
@@ -32,7 +70,7 @@ export interface FileSystemWatcherServer extends JsonRpcServer<FileSystemWatcher
      * Stop file watching for the given id.
      * Resolve when watching is stopped.
      */
-    unwatchFileChanges(watcher: number): Promise<void>;
+    unwatchFileChanges(watcherId: number): Promise<void>;
 }
 
 export interface FileSystemWatcherClient {
@@ -63,6 +101,9 @@ export interface FileChange {
 export const FileSystemWatcherServerProxy = Symbol('FileSystemWatcherServerProxy');
 export type FileSystemWatcherServerProxy = JsonRpcProxy<FileSystemWatcherServer>;
 
+/**
+ * @deprecated not used internally anymore.
+ */
 @injectable()
 export class ReconnectingFileSystemWatcherServer implements FileSystemWatcherServer {
 

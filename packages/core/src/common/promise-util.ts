@@ -59,3 +59,33 @@ export async function retry<T>(task: () => Promise<T>, delay: number, retries: n
 
     throw lastError;
 }
+
+export class AsyncLock {
+
+    /** How many task are currently queued. */
+    size = 0;
+
+    protected queue: Promise<void> = Promise.resolve();
+
+    /**
+     * This method will queue the execution of `callback` behind previous calls to `acquire`.
+     *
+     * This is useful to ensure that only one task handles a resource at a time.
+     *
+     * @param callback task to execute once previous ones finished.
+     * @param args to pass to your callback.
+     */
+    async acquire<T>(callback: () => PromiseLike<T>): Promise<T>;
+    // eslint-disable-next-line space-before-function-paren, @typescript-eslint/no-explicit-any
+    async acquire<T, U extends any[]>(callback: (...args: U) => PromiseLike<T>, ...args: U): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            const next: () => PromiseLike<void> =
+                () => callback(...args)
+                    .then(resolve, reject)
+                    .then(() => { this.size--; });
+            this.queue = this.queue.then(next, next);
+            this.size++;
+        });
+    }
+
+}
